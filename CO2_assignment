@@ -1,0 +1,188 @@
+##TASK 1 – Household Electricity Subsidy Decision
+Python program
+def subsidy_separate_if(units, ration_card, senior_over_80):
+    result = "No subsidy"
+    if units <= 100:
+        result = "Full subsidy"
+    if 100 < units <= 200 and ration_card:
+        result = "Partial subsidy"
+    if units > 200 and senior_over_80:
+        result = "Special subsidy"
+    return result
+ 
+def subsidy_if_elif(units, ration_card, senior_over_80):
+    if units <= 100:
+        return "Full subsidy"
+    elif units <= 200:
+        if ration_card:
+            return "Partial subsidy"
+        return "No subsidy"
+    elif senior_over_80:
+        return "Special subsidy"
+    else:
+        return "No subsidy"
+ 
+tests = [(80, False, False), (100, True, False),
+         (101, True, False), (200, False, False),
+         (201, True, False), (250, False, True),
+         (150, False, True), (100, False, True)]
+ 
+for t in tests:
+    print(t, subsidy_separate_if(*t), subsidy_if_elif(*t))
+
+##TASK 2 – Loops that Count Attempts
+def check_attempts(answers, maximum_attempts=3):
+    attempts = 0
+    index = 0
+    success = False
+ 
+    while attempts < maximum_attempts and index < len(answers):
+        attempts += 1
+        correct = answers[index]
+        index += 1
+ 
+        if correct:
+            success = True
+            maximum_attempts += 2
+            print("Security answer correct; two extra attempts granted.")
+            break
+        else:
+            print("Incorrect attempt:", attempts)
+ 
+    if success:
+        print("Access verified.")
+    else:
+        print("Attempt limit reached or no more answers.")
+    return attempts, success
+
+##TASK 3 – Vehicle Registration Number Validation
+def normalise_registration(reg):
+    return reg.strip().upper().replace(" ", "").replace("-", "")
+ 
+def validate_registration(reg):
+    value = normalise_registration(reg)
+ 
+    if len(value) < 9 or len(value) > 10:
+        return False
+ 
+    # Two state letters and two district digits
+    if not value[0:2].isalpha() or not value[2:4].isdigit():
+        return False
+ 
+    # One or two series letters followed by four digits
+    series_length = len(value) - 8
+    if series_length not in (1, 2):
+        return False
+ 
+    series = value[4:4 + series_length]
+    number = value[4 + series_length:]
+ 
+    return series.isalpha() and len(number) == 4 and number.isdigit()
+ 
+def format_registration(reg):
+    value = normalise_registration(reg)
+    if not validate_registration(value):
+        return "INVALID"
+    series_length = len(value) - 8
+    return value[:2] + " " + value[2:4] + " " + value[4:4+series_length] + " " + value[-4:]
+ 
+samples = ["tn 09 ab 1234", "TN-22-AB-1234",
+           "TN 2 AB 1234", "TN09A1234", "XX123AB4567",
+           "tn09a1234", "TN 09 ABC 1234"]
+ 
+
+##TASK 4 – String Concatenation and join() Performance
+for item in samples:
+    print(item, "->", format_registration(item))
+
+
+from time import perf_counter
+ 
+def build_with_plus(parts):
+    result = ""
+    for part in parts:
+        result += part
+    return result
+ 
+def build_with_join(parts):
+    return "".join(parts)
+ 
+sizes = [1000, 10000, 100000]
+for size in sizes:
+    parts = [f"item{i}," for i in range(size)]
+ 
+    start = perf_counter()
+    text_plus = build_with_plus(parts)
+    plus_time = perf_counter() - start
+ 
+    start = perf_counter()
+    text_join = build_with_join(parts)
+    join_time = perf_counter() - start
+ 
+    print(size, len(text_plus), len(text_join),
+          f"plus={plus_time:.6f}s",
+          f"join={join_time:.6f}s",
+          "same=", text_plus == text_join)
+
+##TASK 5 – Functions, Parameters and Scope
+# Problematic version: shared mutable default
+def add_item_bad(item, order=[]):
+    order.append(item)
+    return order
+ 
+# Correct version
+def add_item(item, order=None):
+    if order is None:
+        order = []
+    order.append(item)
+    return order
+ 
+print("Bad version:")
+print(add_item_bad("Tea"))
+print(add_item_bad("Sandwich"))  # Previous item remains
+ 
+print("Correct version:")
+print(add_item("Tea"))
+print(add_item("Sandwich"))      # Fresh order
+
+##TASK 6 – Recursion and Its Limits: Counting Temple Steps
+
+from functools import lru_cache
+ 
+def ways_recursive(n):
+    if n < 0:
+        return 0
+    if n == 0 or n == 1:
+        return 1
+    return ways_recursive(n - 1) + ways_recursive(n - 2)
+ 
+@lru_cache(maxsize=None)
+def ways_memo(n):
+    if n < 0:
+        return 0
+    if n == 0 or n == 1:
+        return 1
+    return ways_memo(n - 1) + ways_memo(n - 2)
+ 
+def ways_loop(n):
+    if n < 0:
+        return 0
+    a, b = 1, 1
+    for _ in range(n):
+        a, b = b, a + b
+    return a
+ 
+for n in range(6):
+    print(n, ways_recursive(n), ways_memo(n), ways_loop(n))
+ 
+print("For 1000 steps:", ways_loop(1000))
+
+##TASK 7 – Day-4 Design Challenge: Diagnose, Redesign and Validate
+def validate_value(value):
+    # Replace this condition with the rule in the faculty problem.
+    return isinstance(value, int) and value >= 0
+ 
+test_values = [-1, 0, 1, 10, 100, "10", None]
+for value in test_values:
+    print(repr(value), "->", validate_value(value))
+
